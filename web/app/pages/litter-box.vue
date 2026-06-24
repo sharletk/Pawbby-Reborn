@@ -473,8 +473,8 @@ const isOnline = computed(() => {
   if (!device.value?.lastHeartbeat) return false
   const hb = new Date(device.value.lastHeartbeat).getTime()
   const now = Date.now()
-  // Online if we received data in the last 5 minutes (300,000 ms)
-  return (now - hb) < 300000
+  // Devices broadcast every ~10 mins at idle
+  return (now - hb) < 900000
 })
 
 const resetDeodorizer = async (duration: number) => {

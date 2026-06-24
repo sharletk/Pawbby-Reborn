@@ -162,7 +162,8 @@ const isDeviceOnline = (device: any) => {
   if (!device.lastHeartbeat) return false
   const hb = new Date(device.lastHeartbeat).getTime()
   const now = Date.now()
-  return (now - hb) < 300000
+  // Devices broadcast every ~10 mins at idle
+  return (now - hb) < 900000
 }
 
 onMounted(() => {
