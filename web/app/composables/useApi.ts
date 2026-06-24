@@ -17,20 +17,18 @@ export interface Pet {
   imageBase64?: string
 }
 
-export interface TuyaConfig {
-  id?: string
-  mode: 'local' | 'cloud'
-  deviceId?: string
+export interface Device {
+  id: string
+  name: string
+  mode: string
+  deviceId: string
   ipAddress?: string
   localKey?: string
   tuyaClientId?: string
   tuyaClientSecret?: string
   tuyaRegion?: string
-}
-
-export interface Device {
-  id: string
-  name: string
+  deodorizerLastReset?: string
+  deodorizerDuration?: number
   status: 'Ready' | 'Cleaning' | 'Flattening' | 'Emptying' | 'Error'
   lastToileted: string
   todayToileted: number
@@ -42,26 +40,11 @@ export interface Device {
 export interface DeviceLog {
   id: string
   deviceId: string
-  type: 'auto-clean' | 'manual-clean' | 'toileted' | 'flatten' | 'empty'
+  petId?: string
+  type: 'toileted' | 'manual-clean' | 'auto-clean' | 'flatten' | 'empty' | 'error' | 'tuya-raw-data' | 'reset-deodorizer'
   timestamp: string
   description: string
-  petId?: string
 }
-
-const seedDevice: Device = {
-  id: 'dev_1',
-  name: 'PAWBBY Smart Litter Box',
-  status: 'Ready',
-  lastToileted: '09:02',
-  todayToileted: 12,
-  litterLevel: 'Sufficient',
-  wasteBin: 'Not Full',
-  daysLeft: 20
-}
-
-const seedLogs: DeviceLog[] = [
-  { id: 'log_1', deviceId: 'dev_1', type: 'auto-clean', timestamp: '5/16 15:02', description: 'auto-clean completed.' }
-]
 
 function getGravatar(email: string) {
   if (!email) return ''
@@ -81,15 +64,6 @@ export const useApi = () => {
     if (updates.email) user.avatarUrl = getGravatar(updates.email)
     await $fetch('/api/settings', { method: 'POST', body: { user } })
     return user
-  }
-
-  const getTuyaConfig = async (): Promise<TuyaConfig> => {
-    const { tuya } = await $fetch('/api/settings') as any
-    return tuya
-  }
-
-  const updateTuyaConfig = async (tuya: Partial<TuyaConfig>) => {
-    await $fetch('/api/settings', { method: 'POST', body: { tuya } })
   }
 
   const getPets = async (): Promise<Pet[]> => {
@@ -112,9 +86,35 @@ export const useApi = () => {
     // Only reload the page now, database manages state
   }
 
-  const getDevices = async (): Promise<Device[]> => [seedDevice]
-  const getDevice = async (id: string) => seedDevice
-  const getLogs = async (deviceId: string) => seedLogs
+  const getDevices = async (): Promise<Device[]> => {
+    const { devices } = await $fetch('/api/devices') as any
+    return devices
+  }
+
+  const createDevice = async (deviceData: any) => {
+    const { device } = await $fetch('/api/devices', { method: 'POST', body: deviceData }) as any
+    return device
+  }
+
+  const updateDevice = async (id: string, deviceData: any) => {
+    const { device } = await $fetch('/api/devices', { method: 'PUT', body: { id, ...deviceData } }) as any
+    return device
+  }
+
+  const deleteDevice = async (id: string) => {
+    await $fetch(`/api/devices?id=${id}`, { method: 'DELETE' })
+  }
+
+  const getDevice = async (id: string) => {}
+  const getLogs = async (deviceId: string): Promise<DeviceLog[]> => {
+    const { events } = await $fetch(`/api/events?deviceId=${deviceId}`) as any
+    return events
+  }
+
+  const createEvent = async (data: any) => {
+    const { event } = await $fetch('/api/events', { method: 'POST', body: data }) as any
+    return event
+  }
   const triggerClean = async (id: string) => {}
   const triggerFlatten = async (id: string) => {}
   const triggerEmpty = async (id: string) => {}
@@ -156,14 +156,16 @@ export const useApi = () => {
   return {
     getUser,
     updateUser,
-    getTuyaConfig,
-    updateTuyaConfig,
     getDevices,
+    createDevice,
+    updateDevice,
+    deleteDevice,
     getDevice,
+    getLogs,
+    createEvent,
     triggerClean,
     triggerFlatten,
     triggerEmpty,
-    getLogs,
     getPets,
     addPet,
     updatePet,

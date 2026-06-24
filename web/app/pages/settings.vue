@@ -62,61 +62,7 @@
 
     </div>
 
-    <!-- Tuya Config -->
-    <div class="mt-8 bg-pawbby-card/50 rounded-3xl p-6 border border-white/5">
-      <h2 class="text-lg font-bold text-white mb-4">Smart Litter Box Connection</h2>
 
-      <div class="mb-4">
-        <label class="block text-sm text-pawbby-muted mb-1">Connection Mode</label>
-        <select v-model="tuyaForm.mode" disabled
-          class="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none opacity-50 cursor-not-allowed">
-          <option value="local">Local Network (Recommended)</option>
-          <option value="cloud" disabled>Tuya Cloud (Coming Soon)</option>
-        </select>
-      </div>
-
-      <div class="mb-4">
-        <label class="block text-sm text-pawbby-muted mb-1">Device ID</label>
-        <input v-model="tuyaForm.deviceId" type="text"
-          class="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-pawbby-primary" />
-      </div>
-
-      <template v-if="tuyaForm.mode === 'local'">
-        <div class="mb-4">
-          <label class="block text-sm text-pawbby-muted mb-1">IP Address</label>
-          <input v-model="tuyaForm.ipAddress" type="text"
-            class="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-pawbby-primary" />
-        </div>
-        <div class="mb-6">
-          <label class="block text-sm text-pawbby-muted mb-1">Local Key</label>
-          <input v-model="tuyaForm.localKey" type="text"
-            class="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-pawbby-primary" />
-        </div>
-      </template>
-
-      <template v-if="tuyaForm.mode === 'cloud'">
-        <div class="mb-4">
-          <label class="block text-sm text-pawbby-muted mb-1">Tuya Client ID</label>
-          <input v-model="tuyaForm.tuyaClientId" type="text"
-            class="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-pawbby-primary" />
-        </div>
-        <div class="mb-4">
-          <label class="block text-sm text-pawbby-muted mb-1">Tuya Client Secret</label>
-          <input v-model="tuyaForm.tuyaClientSecret" type="text"
-            class="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-pawbby-primary" />
-        </div>
-        <div class="mb-6">
-          <label class="block text-sm text-pawbby-muted mb-1">Tuya Region</label>
-          <input v-model="tuyaForm.tuyaRegion" type="text" placeholder="e.g. eu"
-            class="w-full bg-black/30 border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-pawbby-primary" />
-        </div>
-      </template>
-
-      <button @click="saveTuyaConfig"
-        class="w-full py-3 bg-pawbby-primary text-black font-bold rounded-2xl hover:bg-pawbby-secondary transition-colors">
-        Save Connection
-      </button>
-    </div>
 
     <!-- Clear Data -->
     <div class="mt-auto pt-8 pb-4">
@@ -141,32 +87,14 @@ definePageMeta({
 const api = useApi()
 const router = useRouter()
 const user = ref<User | null>(null)
-const tuyaForm = ref<any>({
-  mode: 'local',
-  deviceId: '',
-  ipAddress: '',
-  localKey: '',
-  tuyaClientId: '',
-  tuyaClientSecret: '',
-  tuyaRegion: 'eu'
-})
 
 const loadData = async () => {
   user.value = await api.getUser()
-  const config = await api.getTuyaConfig()
-  if (config) {
-    tuyaForm.value = { ...tuyaForm.value, ...config }
-  }
 }
 
 onMounted(() => {
   loadData()
 })
-
-const saveTuyaConfig = async () => {
-  await api.updateTuyaConfig(tuyaForm.value)
-  alert('Tuya connection settings saved! The background daemon will restart and attempt to connect.')
-}
 
 const toggleWeightUnit = async () => {
   if (!user.value) return

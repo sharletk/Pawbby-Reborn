@@ -4,30 +4,16 @@ export default defineEventHandler(async (event) => {
   const method = event.method
 
   if (method === 'GET') {
-    let config = await prisma.tuyaConfig.findUnique({ where: { id: 'default' } })
-    if (!config) {
-      config = await prisma.tuyaConfig.create({ data: { id: 'default', mode: 'local' } })
-    }
-    
     let user = await prisma.user.findFirst()
     if (!user) {
       user = await prisma.user.create({ data: { name: 'Olivia', email: 'hello@example.com', weightUnit: 'kg' } })
     }
-    return { tuya: config, user }
+    return { user }
   }
 
   if (method === 'POST') {
     const body = await readBody(event)
     
-    if (body.tuya) {
-      await prisma.tuyaConfig.upsert({
-        where: { id: 'default' },
-        update: body.tuya,
-        create: { id: 'default', ...body.tuya }
-      })
-      const nitro = useNitroApp()
-      await nitro.hooks.callHook('tuya:restart' as any)
-    }
     if (body.user) {
       const user = await prisma.user.findFirst()
       if (user) {
