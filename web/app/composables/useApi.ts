@@ -29,6 +29,7 @@ export interface Device {
   tuyaRegion?: string
   deodorizerLastReset?: string
   deodorizerDuration?: number
+  lastHeartbeat?: string
   status: 'Ready' | 'Cleaning' | 'Flattening' | 'Emptying' | 'Error'
   lastToileted: string
   todayToileted: number
@@ -115,9 +116,15 @@ export const useApi = () => {
     const { event } = await $fetch('/api/events', { method: 'POST', body: data }) as any
     return event
   }
-  const triggerClean = async (id: string) => {}
-  const triggerFlatten = async (id: string) => {}
-  const triggerEmpty = async (id: string) => {}
+  const triggerClean = async (deviceId: string) => {
+    await $fetch('/api/action', { method: 'POST', body: { deviceId, action: 'clean' } })
+  }
+  const triggerFlatten = async (deviceId: string) => {
+    await $fetch('/api/action', { method: 'POST', body: { deviceId, action: 'flatten' } })
+  }
+  const triggerEmpty = async (deviceId: string) => {
+    await $fetch('/api/action', { method: 'POST', body: { deviceId, action: 'empty' } })
+  }
 
   const resizeImage = (file: File, maxWidth = 400, maxHeight = 400): Promise<string> => {
     return new Promise((resolve, reject) => {

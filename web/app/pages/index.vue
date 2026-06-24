@@ -29,7 +29,12 @@
         <div class="flex-1 z-10 flex flex-col justify-between min-h-[120px]">
           <div>
             <h2 class="text-lg font-semibold text-white/90 leading-tight pr-24">{{ device.name || 'PAWBBY Smart Litter Box' }}</h2>
-            <p class="text-pawbby-muted text-sm mt-1">Status: {{ device.status || 'Ready' }}</p>
+            <div 
+              class="inline-block px-3 py-1 mt-2 rounded-full text-xs font-semibold border"
+              :class="isDeviceOnline(device) ? 'bg-[#3D7A41]/20 text-[#3D7A41] border-[#3D7A41]/50' : 'bg-white/10 text-pawbby-muted border-white/5'"
+            >
+              {{ isDeviceOnline(device) ? 'Online' : 'Offline' }}
+            </div>
           </div>
           
           <div class="mt-8">
@@ -151,6 +156,13 @@ const handleAddDevice = async () => {
   } finally {
     isSaving.value = false
   }
+}
+
+const isDeviceOnline = (device: any) => {
+  if (!device.lastHeartbeat) return false
+  const hb = new Date(device.lastHeartbeat).getTime()
+  const now = Date.now()
+  return (now - hb) < 300000
 }
 
 onMounted(() => {

@@ -37,6 +37,12 @@ export default defineEventHandler(async (event) => {
         const parsed = JSON.parse(e.rawData)
         description = `Deodorizing pod reset for ${parsed.duration} days.`
       } catch (err) {}
+    } else if (e.type === 'manual-clean') {
+      description = 'Manual cleaning cycle started via Pawbby App.'
+    } else if (e.type === 'flatten') {
+      description = 'Litter flattening cycle started via Pawbby App.'
+    } else if (e.type === 'empty') {
+      description = 'Waste bin emptying cycle started via Pawbby App.'
     } else if (e.type === 'tuya-raw-data' && e.rawData) {
       // Try to parse the raw data to extract something readable if possible
       try {

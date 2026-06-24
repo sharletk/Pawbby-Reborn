@@ -5,7 +5,17 @@ export default defineEventHandler(async (event) => {
 
   if (method === 'GET') {
     const devices = await prisma.device.findMany()
-    return { devices }
+    const devicesWithHeartbeat = await Promise.all(devices.map(async d => {
+      const latestRaw = await prisma.litterEvent.findFirst({
+        where: { deviceId: d.id, type: 'tuya-raw-data' },
+        orderBy: { timestamp: 'desc' }
+      })
+      return {
+        ...d,
+        lastHeartbeat: latestRaw ? latestRaw.timestamp : null
+      }
+    }))
+    return { devices: devicesWithHeartbeat }
   }
 
   if (method === 'POST') {

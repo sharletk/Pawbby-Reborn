@@ -7,9 +7,14 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
       </NuxtLink>
-      <div class="text-center">
-        <h1 class="text-lg font-bold text-white/90">PAWBBY Litter Box</h1>
-        <p class="text-xs text-pawbby-muted">{{ device?.status || 'Unknown' }}</p>
+      <div class="flex items-center space-x-3">
+        <h1 class="text-lg font-bold text-white/90">{{ device?.name || 'PAWBBY Litter Box' }}</h1>
+        <span 
+          class="px-2 py-0.5 rounded-full text-[10px] font-semibold border"
+          :class="isOnline ? 'bg-[#3D7A41]/20 text-[#3D7A41] border-[#3D7A41]/50' : 'bg-white/10 text-pawbby-muted border-white/5'"
+        >
+          {{ isOnline ? 'Online' : 'Offline' }}
+        </span>
       </div>
       <button @click="openSettings" class="text-white p-2 hover:text-white/80 transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -178,7 +183,7 @@
         <h3 class="text-white/90 font-semibold text-lg text-center mb-6">Device Controls</h3>
         
         <div class="grid grid-cols-1 gap-4">
-          <button @click="doClean" :disabled="isBusy" class="bg-pawbby-card border border-white/10 p-5 rounded-2xl flex items-center justify-between hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <button @click="confirmClean" disabled class="bg-pawbby-card border border-white/10 p-5 rounded-2xl flex items-center justify-between opacity-50 cursor-not-allowed">
             <div class="flex items-center space-x-4">
               <div class="bg-[#3D7A41] p-3 rounded-xl text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -187,7 +192,7 @@
               </div>
               <div class="text-left">
                 <h4 class="text-white font-semibold text-lg">Clean Litter</h4>
-                <p class="text-pawbby-muted text-sm mt-1">Start a manual cleaning cycle</p>
+                <p class="text-pawbby-muted text-sm mt-1">Temporarily disabled</p>
               </div>
             </div>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pawbby-muted" viewBox="0 0 20 20" fill="currentColor">
@@ -195,7 +200,7 @@
             </svg>
           </button>
 
-          <button @click="doFlatten" :disabled="isBusy" class="bg-pawbby-card border border-white/10 p-5 rounded-2xl flex items-center justify-between hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <button @click="confirmFlatten" :disabled="isBusy" class="bg-pawbby-card border border-white/10 p-5 rounded-2xl flex items-center justify-between hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
             <div class="flex items-center space-x-4">
               <div class="bg-[#2A6372] p-3 rounded-xl text-white">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -212,7 +217,7 @@
             </svg>
           </button>
 
-          <button @click="doEmpty" :disabled="isBusy" class="bg-pawbby-card border border-white/10 p-5 rounded-2xl flex items-center justify-between hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <button @click="confirmEmpty" :disabled="isBusy" class="bg-pawbby-card border border-white/10 p-5 rounded-2xl flex items-center justify-between hover:bg-white/5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
             <div class="flex items-center space-x-4">
               <div class="bg-pawbby-primary p-3 rounded-xl text-pawbby-bg">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -318,6 +323,55 @@
       </div>
     </div>
 
+    <!-- Liability Warning Modal -->
+    <div v-if="showLiabilityModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+      <div class="bg-pawbby-card rounded-3xl p-6 w-full max-w-sm border border-white/10 relative overflow-hidden text-center">
+        <div class="w-16 h-16 bg-[#D84C4C]/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-[#D84C4C]/50">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-[#D84C4C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-white mb-2">Safety Warning</h2>
+        <p class="text-pawbby-muted text-sm mb-6 leading-relaxed">
+          <strong>Never initiate a manual cycle if a cat is inside or near the litter box.</strong><br/><br/>
+          By proceeding, you accept full responsibility for ensuring the machine is clear and safe to operate.
+        </p>
+
+        <div class="space-y-3">
+          <button @click="proceedLiabilityAction" class="w-full py-3 bg-[#D84C4C] text-white font-bold rounded-2xl hover:bg-[#D84C4C]/80 transition-colors">
+            I Understand, Proceed
+          </button>
+          <button @click="showLiabilityModal = false" class="w-full py-2 text-pawbby-muted text-sm hover:text-white transition-colors mt-2">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty Confirmation Modal -->
+    <div v-if="showEmptyModal" class="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
+      <div class="bg-pawbby-card rounded-3xl p-6 w-full max-w-sm border border-white/10 relative overflow-hidden text-center">
+        <div class="w-16 h-16 bg-pawbby-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-pawbby-primary/50">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-pawbby-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-bold text-white mb-2">Empty Litter Box?</h2>
+        <p class="text-pawbby-muted text-sm mb-6 leading-relaxed">
+          This will dump <strong>all clean and dirty litter</strong> directly into the waste bin. This action cannot be undone and will require a full refill.
+        </p>
+
+        <div class="space-y-3">
+          <button @click="proceedEmptyAction" class="w-full py-3 bg-pawbby-primary text-black font-bold rounded-2xl hover:bg-pawbby-secondary transition-colors">
+            Yes, Empty Litter
+          </button>
+          <button @click="showEmptyModal = false" class="w-full py-2 text-pawbby-muted text-sm hover:text-white transition-colors mt-2">
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -342,6 +396,10 @@ let pollInterval: any = null
 
 const showSettingsModal = ref(false)
 const showDeodorizerModal = ref(false)
+const showLiabilityModal = ref(false)
+const showEmptyModal = ref(false)
+const pendingAction = ref<'clean' | 'flatten'>('flatten')
+
 const isSaving = ref(false)
 const isResettingDeodorizer = ref(false)
 const editDevice = ref({
@@ -403,6 +461,14 @@ const deodorizerDaysLeft = computed(() => {
   return Math.max(0, duration - daysPassed)
 })
 
+const isOnline = computed(() => {
+  if (!device.value?.lastHeartbeat) return false
+  const hb = new Date(device.value.lastHeartbeat).getTime()
+  const now = Date.now()
+  // Online if we received data in the last 5 minutes (300,000 ms)
+  return (now - hb) < 300000
+})
+
 const resetDeodorizer = async (duration: number) => {
   isResettingDeodorizer.value = true
   try {
@@ -452,23 +518,54 @@ const filteredLogs = computed(() => {
 })
 
 const isBusy = computed(() => {
-  return device.value && device.value.status !== 'Ready'
+  return device.value?.status && device.value.status !== 'Ready'
 })
+
+const confirmClean = () => {
+  pendingAction.value = 'clean'
+  showLiabilityModal.value = true
+}
+
+const confirmFlatten = () => {
+  pendingAction.value = 'flatten'
+  showLiabilityModal.value = true
+}
+
+const proceedLiabilityAction = () => {
+  showLiabilityModal.value = false
+  if (pendingAction.value === 'clean') {
+    doClean()
+  } else {
+    doFlatten()
+  }
+}
+
+const confirmEmpty = () => {
+  showEmptyModal.value = true
+}
+
+const proceedEmptyAction = () => {
+  showEmptyModal.value = false
+  doEmpty()
+}
 
 const doClean = async () => {
   await api.triggerClean(deviceId)
+  await api.createEvent({ deviceId, type: 'manual-clean' })
   await loadData()
   activeTab.value = 'record'
 }
 
 const doFlatten = async () => {
   await api.triggerFlatten(deviceId)
+  await api.createEvent({ deviceId, type: 'flatten' })
   await loadData()
   activeTab.value = 'record'
 }
 
 const doEmpty = async () => {
   await api.triggerEmpty(deviceId)
+  await api.createEvent({ deviceId, type: 'empty' })
   await loadData()
   activeTab.value = 'record'
 }

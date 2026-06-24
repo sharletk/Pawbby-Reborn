@@ -96,5 +96,30 @@ export default defineNitroPlugin((nitroApp) => {
     startTuyaListener();
   });
 
+  nitroApp.hooks.hook("tuya:action" as any, async ({ deviceId, action }: any) => {
+    const device = activeDevices.get(deviceId);
+    if (!device) {
+      console.error(`[Tuya Action] Cannot send action, device ${deviceId} not connected.`);
+      return;
+    }
+    
+    try {
+      if (action === 'flatten') {
+        console.log(`[Tuya Action] Sending flatten command (DP 106) to ${deviceId}...`);
+        await device.set({ dps: 106, set: "AQEAAQA=" });
+      }
+      else if (action === 'clean') {
+        // TODO: Need payload for clean
+        console.log(`[Tuya Action] Clean command not implemented yet!`);
+      }
+      else if (action === 'empty') {
+        console.log(`[Tuya Action] Sending empty command (DP 106) to ${deviceId}...`);
+        await device.set({ dps: 106, set: "AQIAAQA=" });
+      }
+    } catch (e) {
+      console.error(`[Tuya Action] Failed to send action ${action} to ${deviceId}`, e);
+    }
+  });
+
   setTimeout(() => startTuyaListener(), 1000);
 });
