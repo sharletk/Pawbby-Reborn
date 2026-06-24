@@ -95,7 +95,7 @@
         </div>
 
         <p class="text-pawbby-muted text-sm leading-relaxed">
-          WhiskerSense matches cats based on their weight, so please update it promptly if there are any changes in your cat's weight.
+          PawID matches cats based on their weight, so please update it promptly if there are any changes in your cat's weight.
         </p>
 
         <!-- Pet Chips -->
@@ -131,8 +131,16 @@
             <div class="flex-shrink-0 mt-1">
               
               <!-- Icon Logic Based on Log Type -->
-              <div v-if="log.type === 'auto-clean' || log.type === 'flatten' || log.type === 'empty'" class="w-8 h-8 rounded-lg bg-[#2A6372] flex items-center justify-center text-white font-bold text-sm uppercase">
-                {{ log.type[0] }}
+              <div v-if="log.type === 'auto-clean'" class="w-8 h-8 rounded-lg bg-[#3D7A41]/20 flex items-center justify-center text-[#3D7A41]">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+              </div>
+
+              <div v-else-if="log.type === 'flatten'" class="w-8 h-8 rounded-lg bg-[#2A6372]/20 flex items-center justify-center text-[#2A6372]">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4 8h16M4 16h16" />
+                </svg>
               </div>
 
               <div v-else-if="log.type === 'empty'" class="w-8 h-8 rounded-lg bg-[#D84C4C]/20 flex items-center justify-center text-[#D84C4C]">
