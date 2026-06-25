@@ -187,6 +187,38 @@
 
         </div>
       </div>
+      <!-- History Content -->
+      <div v-if="activeTab === 'history'" class="space-y-6 animate-fade-in py-4">
+        <h3 class="text-white/90 font-semibold text-lg text-center mb-4">Historical Data</h3>
+        
+        <!-- Chart Selector -->
+        <div class="relative w-full mb-6">
+          <select v-model="selectedChart" class="w-full bg-pawbby-card border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-pawbby-primary appearance-none font-medium">
+            <option value="visits">Daily Visit Count</option>
+            <option value="weight">Average Weight (kg)</option>
+            <option value="duration">Average Duration (seconds)</option>
+            <option value="waste">Estimated Waste Output (g)</option>
+          </select>
+          <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pawbby-muted" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+            </svg>
+          </div>
+        </div>
+
+        <div v-if="historyLoading" class="flex justify-center items-center py-12">
+          <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-pawbby-primary"></div>
+        </div>
+        
+        <div v-else-if="currentChartData" class="bg-pawbby-card border border-white/5 rounded-2xl p-4">
+          <Bar v-if="selectedChart === 'visits' || selectedChart === 'waste'" :data="currentChartData" :options="chartOptions" class="w-full h-64" />
+          <Line v-else :data="currentChartData" :options="chartOptions" class="w-full h-64" />
+        </div>
+        
+        <div v-else class="text-center text-pawbby-muted py-8">
+          No historical data available.
+        </div>
+      </div>
       
       <!-- Control Content -->
       <div v-if="activeTab === 'control'" class="space-y-6 animate-fade-in py-4">
@@ -386,8 +418,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { useApi, type Device, type Pet, type DeviceLog } from '~/composables/useApi'
+import { Bar, Line } from 'vue-chartjs'
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement } from 'chart.js'
+
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement)
 
 definePageMeta({
   layout: 'detail'
@@ -403,6 +439,10 @@ const device = ref<Device | null>(null)
 const pets = ref<Pet[]>([])
 const logs = ref<DeviceLog[]>([])
 let pollInterval: any = null
+
+const historyData = ref<any>(null)
+const historyLoading = ref(false)
+const selectedChart = ref('visits')
 
 const showSettingsModal = ref(false)
 const showDeodorizerModal = ref(false)
@@ -425,6 +465,24 @@ const loadData = async () => {
   pets.value = await api.getPets()
   logs.value = await api.getLogs(deviceId)
 }
+
+const loadHistory = async () => {
+  historyLoading.value = true
+  try {
+    const res = await fetch(`/api/history?deviceId=${deviceId}&days=7`)
+    historyData.value = await res.json()
+  } catch (e) {
+    console.error("Failed to load history", e)
+  } finally {
+    historyLoading.value = false
+  }
+}
+
+watch(activeTab, (newTab) => {
+  if (newTab === 'history' && !historyData.value) {
+    loadHistory()
+  }
+})
 
 onMounted(() => {
   loadData()
@@ -580,6 +638,40 @@ const confirmEmpty = () => {
 const proceedEmptyAction = () => {
   showEmptyModal.value = false
   doEmpty()
+}
+
+const currentChartData = computed(() => {
+  if (!historyData.value) return null
+  return {
+    labels: historyData.value.labels,
+    datasets: historyData.value.charts[selectedChart.value] || []
+  }
+})
+
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: 'bottom' as const,
+      labels: {
+        color: '#9CA3AF',
+        usePointStyle: true,
+        padding: 20
+      }
+    }
+  },
+  scales: {
+    x: {
+      grid: { display: false, drawBorder: false },
+      ticks: { color: '#9CA3AF' }
+    },
+    y: {
+      grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+      ticks: { color: '#9CA3AF' },
+      beginAtZero: true
+    }
+  }
 }
 
 const doClean = async () => {
