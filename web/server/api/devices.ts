@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
           },
         });
 
-        let wasteBin = "Not Full*";
+        let wasteBin = "Normal";
         let litterLevel = "Sufficient*";
         let status = "Ready";
         let lidOpen = false;
@@ -45,16 +45,6 @@ export default defineEventHandler(async (event) => {
               const base64Str = parsed.dps["102"];
               if (typeof base64Str === "string") {
                 const buffer = Buffer.from(base64Str, "base64");
-                // values.md: Byte[3] = clean cycle count
-                if (buffer.length > 3) {
-                  const cycleCount = buffer[3];
-                  // Typically a bin is full around 10-15 cycles
-                  if (cycleCount >= 13) {
-                    wasteBin = "Full*";
-                  } else {
-                    wasteBin = `${Math.round((cycleCount / 15) * 100)}% Full*`;
-                  }
-                }
                 // If bytes 1 or 2 indicate a fault code, we can assume it's the insufficient litter error
                 if (buffer.length > 2 && (buffer[1] > 0 || buffer[2] > 0)) {
                   litterLevel = "Insufficient*";
@@ -155,7 +145,7 @@ export default defineEventHandler(async (event) => {
                 binRemoved = true;
               } else if (dp116 === "collect_full") {
                 status = "Bin Full";
-                wasteBin = "Full*";
+                wasteBin = "Full";
               } else if (dp116 !== "work_idle") {
                 status = "Busy";
               }
@@ -165,7 +155,7 @@ export default defineEventHandler(async (event) => {
 
         // Override status if the bin is persistently full (and not currently removed or open)
         if (isBinFullState) {
-          wasteBin = "Full*";
+          wasteBin = "Full";
           if (!lidOpen && !binRemoved && status === "Ready") {
             status = "Bin Full";
           }
