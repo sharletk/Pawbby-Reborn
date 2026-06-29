@@ -100,6 +100,25 @@ export default defineEventHandler(async (event) => {
 
         let binRemoved = false;
 
+        // Check for persistent Bin Full state
+        const latestCollectFull = await prisma.litterEvent.findFirst({
+          where: { deviceId: d.id, type: "tuya-raw-data", rawData: { contains: '"collect_full"' } },
+          orderBy: { timestamp: "desc" },
+        });
+        const latestBinReplaced = await prisma.litterEvent.findFirst({
+          where: { deviceId: d.id, type: "bin-replaced" },
+          orderBy: { timestamp: "desc" },
+        });
+
+        let isBinFullState = false;
+        if (latestCollectFull) {
+          const fullTime = latestCollectFull.timestamp.getTime();
+          const replacedTime = latestBinReplaced ? latestBinReplaced.timestamp.getTime() : 0;
+          if (fullTime > replacedTime) {
+            isBinFullState = true;
+          }
+        }
+
         // Check DP 116 for status
         const latestDP116Event = await prisma.litterEvent.findFirst({
           where: { deviceId: d.id, type: "tuya-raw-data", rawData: { contains: '"116"' } },
@@ -116,11 +135,22 @@ export default defineEventHandler(async (event) => {
               } else if (dp116 === "collect_install") {
                 status = "Bin Removed";
                 binRemoved = true;
+              } else if (dp116 === "collect_full") {
+                status = "Bin Full";
+                wasteBin = "Full*";
               } else if (dp116 !== "work_idle") {
                 status = "Busy";
               }
             }
           } catch(e) {}
+        }
+
+        // Override status if the bin is persistently full (and not currently removed or open)
+        if (isBinFullState) {
+          wasteBin = "Full*";
+          if (!lidOpen && !binRemoved && status === "Ready") {
+            status = "Bin Full";
+          }
         }
 
         return {
