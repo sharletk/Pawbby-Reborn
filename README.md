@@ -59,6 +59,16 @@ To run the Pawbby Reborn dashboard on your local network, you will need a machin
 
 _(For production deployment, run `npm run build` and follow standard Nuxt 3 deployment guidelines.)_
 
+### 🔄 Updating to the Latest Version
+
+We are actively discovering new payloads and improving the dashboard. To automatically update your instance to the latest version, navigate to the root folder of this project in your terminal and run:
+
+```bash
+./upgrade.sh
+```
+
+This script will safely pull the newest code from GitHub, install any new dependencies, sync the database schema, and prepare the app for a restart. Once it finishes, simply restart your Node process or PM2 service!
+
 ---
 
 ## 🖥️ Recommended Hardware (Microcomputers)

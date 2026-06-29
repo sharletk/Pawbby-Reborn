@@ -43,14 +43,7 @@
     <hr class="border-white/5 w-full max-w-md mx-auto mb-8" />
 
     <!-- Menus -->
-    <div class="space-y-8">
-      <a href="https://github.com/larsjarred9/Pawby-Reborn/releases" target="_blank" class="w-full flex items-center justify-between text-white/90 hover:text-white group">
-        <span class="font-medium text-lg">Check for Updates</span>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pawbby-mutedDark group-hover:text-pawbby-muted transition-colors" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
-        </svg>
-      </a>
-
+    <div class="space-y-8 mb-8">
       <a href="https://discord.gg/Tw43AKZkge" target="_blank" class="w-full flex items-center justify-between text-white/90 hover:text-white group">
         <span class="font-medium text-lg">Community Support</span>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-pawbby-mutedDark group-hover:text-pawbby-muted transition-colors" viewBox="0 0 20 20" fill="currentColor">
@@ -64,6 +57,13 @@
           <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
         </svg>
       </a>
+    </div>
+
+    <!-- Footer Branding -->
+    <div class="mt-auto text-center pt-8 text-pawbby-muted text-sm">
+      Created with ❤️ by 
+      <a href="https://speetjens.net" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors" style="font-family: serif; font-weight: bold;">Speetjens.net</a> 
+      & community
     </div>
 
   </div>
