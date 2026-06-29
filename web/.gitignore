@@ -27,4 +27,6 @@ logs
 
 # Prisma Database
 dev.db
+share.db
+share.db-journal
 dev.db-journal

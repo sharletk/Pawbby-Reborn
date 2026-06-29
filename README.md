@@ -47,11 +47,15 @@ To run the Pawbby Reborn dashboard on your local network, you will need a machin
    ```bash
    npm install
    ```
-4. Start the development server:
+4. Initialize the local SQLite database:
+   ```bash
+   npx prisma db push
+   ```
+5. Start the development server:
    ```bash
    npm run dev
    ```
-5. Open a web browser and navigate to `http://localhost:3000` to access the dashboard.
+6. Open a web browser and navigate to `http://localhost:3000` to access the dashboard. 
 
 _(For production deployment, run `npm run build` and follow standard Nuxt 3 deployment guidelines.)_
 
@@ -107,5 +111,18 @@ This is a collaborative community rescue mission. Whether you are an experienced
 
 - 💬 **Communication & Development:** [Join our Discord Server](https://discord.gg/Tw43AKZkge) to talk strategy, share logs, and coordinate the software build in real-time.
 - 📂 **Technical Specifications:** Read through `values.md` for our updated matrix of local network commands and authentication extraction strategies.
+
+### 📤 Sharing Your Database for Development
+
+Because the dashboard saves the raw Tuya JSON payloads from your litter box directly into the database, sharing your database with the developers is incredibly helpful for finding missing commands (like the remote auto-clean trigger). 
+
+To share your logs safely without exposing your Wi-Fi device keys:
+1. Navigate to the `web` directory in your terminal.
+2. Run the anonymization script:
+   ```bash
+   npm run anonymize
+   ```
+3. This will create a completely safe, redacted copy of your database at `web/prisma/share.db`.
+4. You can now safely drag and drop `share.db` into the Discord server!
 
 Let's unbrick some hardware. 🐈‍⬛⚡
