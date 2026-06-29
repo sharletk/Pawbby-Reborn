@@ -10,6 +10,8 @@ export default defineNitroPlugin((nitroApp) => {
     pendingLitterCheck: boolean;
     lastFlattenTime: number;
     lastCleanTime: number;
+    lastEmptyTime: number;
+    lastCatLeaveTime: number;
   }
 
   const activeDevices = new Map<string, any>();
@@ -68,6 +70,8 @@ export default defineNitroPlugin((nitroApp) => {
             pendingLitterCheck: false,
             lastFlattenTime: 0,
             lastCleanTime: 0,
+            lastEmptyTime: 0,
+            lastCatLeaveTime: 0,
           });
         }
 
@@ -202,6 +206,10 @@ export default defineNitroPlugin((nitroApp) => {
                 state.lastCleanTime = now;
               }
             }
+            if (newStatus === "cat_leave") {
+              state.lastCatLeaveTime = now;
+            }
+
             if (
               newStatus === "work_smooth" &&
               state.currentStatus !== "work_smooth"
@@ -209,7 +217,7 @@ export default defineNitroPlugin((nitroApp) => {
               if (now - state.lastFlattenTime > 60000) {
                 let flattenType = "flatten";
                 if (isApp) flattenType = "flatten-app";
-                else if (state.currentStatus !== "work_idle") flattenType = "auto-flatten";
+                else if (now - state.lastCatLeaveTime < 5 * 60 * 1000) flattenType = "auto-flatten";
 
                 await prisma.litterEvent.create({
                   data: {
@@ -224,12 +232,15 @@ export default defineNitroPlugin((nitroApp) => {
               newStatus === "work_empty" &&
               state.currentStatus !== "work_empty"
             ) {
-              await prisma.litterEvent.create({
-                data: {
-                  type: isApp ? "empty-app" : "empty",
-                  deviceId: config.id,
-                },
-              });
+              if (now - state.lastEmptyTime > 60000) {
+                await prisma.litterEvent.create({
+                  data: {
+                    type: isApp ? "empty-app" : "empty",
+                    deviceId: config.id,
+                  },
+                });
+                state.lastEmptyTime = now;
+              }
             }
             if (
               newStatus === "lid_open" &&
@@ -432,7 +443,10 @@ export default defineNitroPlugin((nitroApp) => {
             data: { type: "flatten-app", deviceId },
           });
           const state = deviceStates.get(deviceId);
-          if (state) state.currentStatus = "work_smooth"; // Prevent duplicate if hardware does echo it later
+          if (state) {
+            state.currentStatus = "work_smooth"; // Prevent duplicate if hardware does echo it later
+            state.lastFlattenTime = Date.now();
+          }
         } else if (action === "clean") {
           // TODO: Need payload for clean
           console.log(`[Tuya Action] Clean command not implemented yet!`);
@@ -445,7 +459,10 @@ export default defineNitroPlugin((nitroApp) => {
             data: { type: "empty-app", deviceId },
           });
           const state = deviceStates.get(deviceId);
-          if (state) state.currentStatus = "work_empty"; // Prevent duplicate
+          if (state) {
+            state.currentStatus = "work_empty"; // Prevent duplicate
+            state.lastEmptyTime = Date.now();
+          }
         }
       } catch (e) {
         console.error(
