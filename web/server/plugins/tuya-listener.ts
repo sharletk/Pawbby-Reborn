@@ -138,7 +138,7 @@ export default defineNitroPlugin((nitroApp) => {
             // PawID Matching Logic
             const pets = await prisma.pet.findMany();
             let matchedPetId = null;
-            let minDiff = 0.2; // 200g threshold for matching
+            let minDiff = 0.3; // 300g threshold for matching
 
             if (weightInKg > 0) {
               for (const pet of pets) {
@@ -290,7 +290,7 @@ export default defineNitroPlugin((nitroApp) => {
 
               const pets = await prisma.pet.findMany();
               let matchedPetId = null;
-              let minDiff = 0.2;
+              let minDiff = 0.3;
               for (const pet of pets) {
                 const diff = Math.abs(pet.weight - weightInKg);
                 if (diff <= minDiff) {
